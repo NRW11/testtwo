@@ -208,7 +208,10 @@
       <textarea id="f_note" placeholder="รายละเอียดอาการ / บันทึกงาน"></textarea>
     </label>
 
-    <button class="btn btn-primary" id="genBtn">สร้างข้อความนัดหมาย</button>
+    <div class="copybar">
+      <button class="btn btn-ghost" id="resetBtn">ล้างฟอร์ม / กรอกใหม่</button>
+      <button class="btn btn-primary" id="genBtn">สร้างข้อความนัดหมาย</button>
+    </div>
   </div>
 
   <!-- OUTPUT -->
@@ -218,6 +221,7 @@
       <button class="btn btn-ghost" id="editBtn">← แก้ไขข้อมูล</button>
       <button class="btn btn-primary" id="copyBtn">คัดลอกข้อความ</button>
     </div>
+    <button class="btn btn-ghost" id="newBtn">กรอกรายการใหม่ (ล้างฟอร์ม)</button>
   </div>
 
 </div>
@@ -278,6 +282,31 @@ function formatDateThai(dateStr){
   const [y,m,d] = dateStr.split('-');
   return `${d}/${m}/${y}`;
 }
+
+const resetBtn = document.getElementById('resetBtn');
+const newBtn = document.getElementById('newBtn');
+
+function resetForm(){
+  document.getElementById('f_refno').value = '';
+  document.getElementById('f_custcode').value = '';
+  document.getElementById('f_branch').value = '';
+  document.getElementById('f_snum').value = 'S3';
+  document.getElementById('f_date').value = '';
+  document.getElementById('f_time').value = '';
+  document.getElementById('f_contact').value = '';
+  document.getElementById('f_phone').value = '';
+  document.getElementById('f_callstatus').value = 'นัดสำเร็จ';
+  document.getElementById('f_note').value = '';
+  document.getElementById('f_refno').focus();
+}
+
+resetBtn.addEventListener('click', resetForm);
+newBtn.addEventListener('click', () => {
+  resetForm();
+  outCard.classList.add('hidden');
+  formCard.classList.remove('hidden');
+  formCard.scrollIntoView({behavior:'smooth', block:'start'});
+});
 
 genBtn.addEventListener('click', () => {
   const refno = document.getElementById('f_refno').value.trim();
