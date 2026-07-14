@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สร้างข้อความนัดหมายเข้าซ่อม</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  :root{
+    --bg: #0d1117;
+    --panel: #151b23;
+    --panel-2: #1c2430;
+    --line: #2a3341;
+    --amber: #ffb454;
+    --amber-dim: #8a6a3a;
+    --green: #5fd97a;
+    --text: #e6edf3;
+    --sub: #8b98a5;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'IBM Plex Sans Thai', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(255,180,84,0.05), transparent 40%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding:24px 16px 60px;
+  }
+  .wrap{max-width:640px;margin:0 auto;}
+
+  .ticket-head{
+    display:flex;align-items:center;gap:12px;
+    margin-bottom:22px;
+  }
+  .ticket-head .glyph{
+    width:40px;height:40px;border-radius:8px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);color:var(--amber);font-weight:700;font-size:16px;
+    flex-shrink:0;
+  }
+  .ticket-head h1{font-size:17px;margin:0;font-weight:600;letter-spacing:.2px;}
+  .ticket-head p{margin:2px 0 0;font-size:12.5px;color:var(--sub);font-family:var(--mono);}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:18px;
+    margin-bottom:16px;
+    position:relative;
+  }
+  .card::before{
+    content:attr(data-step);
+    position:absolute; top:-9px; left:16px;
+    background:var(--bg);
+    padding:0 8px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--amber-dim);
+    letter-spacing:1px;
+  }
+
+  .btn{
+    width:100%;
+    padding:13px;
+    border-radius:9px;
+    border:none;
+    font-family:var(--sans);
+    font-weight:600;
+    font-size:14.5px;
+    cursor:pointer;
+    margin-top:12px;
+    transition:transform .1s, opacity .15s;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--amber);color:#1a1305;}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text);}
+
+  label.field{display:block;margin-bottom:14px;}
+  label.field .lbl{
+    font-size:12px;color:var(--sub);
+    font-family:var(--mono);
+    display:flex;justify-content:space-between;
+    margin-bottom:6px;
+  }
+  label.field .lbl .tag{color:var(--amber-dim);}
+  input[type=text], input[type=date], input[type=time], select, textarea{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:14px;
+    padding:10px 11px;
+    border-radius:8px;
+    outline:none;
+    transition:border-color .15s;
+  }
+  input:focus, select:focus, textarea:focus{border-color:var(--amber-dim);}
+  textarea{resize:vertical;min-height:70px;line-height:1.5;}
+  select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%238b98a5'/></svg>");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px;}
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  .combo{display:flex;gap:8px;}
+  .combo select{flex-shrink:0;width:auto;min-width:64px;}
+  .combo input{flex:1;}
+
+  .out-box{
+    background:#0a0e14;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px;
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.85;
+    white-space:pre-wrap;
+    word-break:break-word;
+    color:#c9d3dd;
+  }
+
+  .copybar{display:flex;gap:10px;margin-top:12px;}
+  .copybar .btn{margin-top:0;}
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--green);color:#0a1f0d;font-weight:600;font-size:13px;
+    padding:9px 18px;border-radius:20px;
+    opacity:0;pointer-events:none;
+    transition:opacity .2s, transform .2s;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="ticket-head">
+    <div class="glyph">＃</div>
+    <div>
+      <h1>ข้อความนัดหมายเข้าซ่อม</h1>
+      <p>กรอกข้อมูล → คัดลอกส่งได้เลย</p>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div class="card" data-step="01 · กรอกข้อมูล" id="formCard">
+
+    <label class="field">
+      <div class="lbl"><span>Service Request</span><span class="tag">Ref No.</span></div>
+      <input type="text" id="f_refno" placeholder="เช่น U657598">
+    </label>
+
+    <label class="field">
+      <div class="lbl"><span>ชื่อบริษัท</span><span class="tag">ซีพี รีเทลลิงค์/U/S?/รหัสลูกค้า/สาขา/ภาค3</span></div>
+      <div class="combo">
+        <select id="f_snum">
+          <option value="S1">S1</option>
+          <option value="S2">S2</option>
+          <option value="S3" selected>S3</option>
+        </select>
+        <input type="text" id="f_custcode" placeholder="รหัสลูกค้า">
+        <input type="text" id="f_branch" placeholder="ชื่อสาขา">
+      </div>
+    </label>
+
+    <div class="row2">
+      <label class="field">
+        <div class="lbl"><span>วันที่นัดช่าง</span></div>
+        <input type="date" id="f_date">
+      </label>
+      <label class="field">
+        <div class="lbl"><span>เวลานัดช่าง</span></div>
+        <input type="time" id="f_time">
+      </label>
+    </div>
+
+    <label class="field">
+      <div class="lbl"><span>ผู้รับนัดเข้าซ่อม</span></div>
+      <input type="text" id="f_contact" placeholder="ชื่อผู้ติดต่อ">
+    </label>
+
+    <label class="field">
+      <div class="lbl"><span>เบอร์โทรผู้รับนัด</span></div>
+      <input type="text" id="f_phone" placeholder="เบอร์โทรศัพท์">
+    </label>
+
+    <label class="field">
+      <div class="lbl"><span>สถานะการโทรหาสาขา</span></div>
+      <select id="f_callstatus">
+        <option value="นัดสำเร็จ">นัดสำเร็จ</option>
+        <option value="ไม่สำเร็จ">ไม่สำเร็จ</option>
+      </select>
+    </label>
+
+    <label class="field">
+      <div class="lbl"><span>หมายเหตุ</span><span class="tag">รายละเอียด</span></div>
+      <textarea id="f_note" placeholder="รายละเอียดอาการ / บันทึกงาน"></textarea>
+    </label>
+
+    <button class="btn btn-primary" id="genBtn">สร้างข้อความนัดหมาย</button>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="card hidden" data-step="02 · ข้อความพร้อมส่ง" id="outCard">
+    <div class="out-box" id="outBox"></div>
+    <div class="copybar">
+      <button class="btn btn-ghost" id="editBtn">← แก้ไขข้อมูล</button>
+      <button class="btn btn-primary" id="copyBtn">คัดลอกข้อความ</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">คัดลอกแล้ว</div>
+
+<script>
+const formCard = document.getElementById('formCard');
+const outCard = document.getElementById('outCard');
+const genBtn = document.getElementById('genBtn');
+const editBtn = document.getElementById('editBtn');
+const copyBtn = document.getElementById('copyBtn');
+const outBox = document.getElementById('outBox');
+const toast = document.getElementById('toast');
+
+function formatDateThai(dateStr){
+  if(!dateStr) return '';
+  const [y,m,d] = dateStr.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+genBtn.addEventListener('click', () => {
+  const refno = document.getElementById('f_refno').value.trim();
+  const snum = document.getElementById('f_snum').value;
+  const custcode = document.getElementById('f_custcode').value.trim();
+  const branch = document.getElementById('f_branch').value.trim();
+  const date = formatDateThai(document.getElementById('f_date').value);
+  const time = document.getElementById('f_time').value;
+  const contact = document.getElementById('f_contact').value.trim();
+  const phone = document.getElementById('f_phone').value.trim();
+  const callstatus = document.getElementById('f_callstatus').value;
+  const note = document.getElementById('f_note').value.trim();
+
+  const company = `ซีพี รีเทลลิงค์/U/${snum}/${custcode}/${branch}/ภาค3`;
+
+  const lines = [
+    `Service Request : ${refno}`,
+    `ชื่อบริษัท : ${company}`,
+    `กำหนดช่างดำเนินการ วันที่ : ${date}`,
+    `กำหนดช่างดำเนินการ เวลา : ${time}`,
+    `ชื่อผู้รับนัดเข้าซ่อม : ${contact}`,
+    `เบอร์โทรศัพท์ ผู้รับนัดหมายเข้าซ่อม : ${phone}`,
+    `สถานะการโทรหาสาขา : ${callstatus}`,
+    `หมายเหตุ : ${note}`
+  ];
+
+  outBox.textContent = lines.join('\n');
+  outCard.classList.remove('hidden');
+  formCard.classList.add('hidden');
+  outCard.scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+editBtn.addEventListener('click', () => {
+  outCard.classList.add('hidden');
+  formCard.classList.remove('hidden');
+  formCard.scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+copyBtn.addEventListener('click', async () => {
+  try{
+    await navigator.clipboard.writeText(outBox.textContent);
+  } catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = outBox.textContent;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1600);
+});
+</script>
+</body>
+</html>
