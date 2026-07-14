@@ -167,9 +167,11 @@
           <option value="S2">S2</option>
           <option value="S3" selected>S3</option>
         </select>
-        <input type="text" id="f_custcode" placeholder="รหัสลูกค้า">
-        <input type="text" id="f_branch" placeholder="ชื่อสาขา">
+        <input type="text" id="f_custcode" placeholder="รหัสลูกค้า" list="custcodeList" autocomplete="off">
+        <input type="text" id="f_branch" placeholder="ชื่อสาขา" list="branchList" autocomplete="off">
       </div>
+      <datalist id="custcodeList"></datalist>
+      <datalist id="branchList"></datalist>
     </label>
 
     <div class="row2">
@@ -231,6 +233,46 @@ const copyBtn = document.getElementById('copyBtn');
 const outBox = document.getElementById('outBox');
 const toast = document.getElementById('toast');
 
+const HIST_KEY_CUST = 'nat_appt_custcodes';
+const HIST_KEY_BRANCH = 'nat_appt_branches';
+let historyOK = true;
+
+function loadHistory(key){
+  try{
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e){
+    historyOK = false;
+    return [];
+  }
+}
+
+function saveHistoryItem(key, value){
+  if(!value) return;
+  try{
+    let list = loadHistory(key);
+    list = list.filter(v => v !== value);
+    list.unshift(value);
+    list = list.slice(0, 30);
+    localStorage.setItem(key, JSON.stringify(list));
+  } catch(e){
+    historyOK = false;
+  }
+}
+
+function fillDatalist(listId, key){
+  const dl = document.getElementById(listId);
+  dl.innerHTML = '';
+  loadHistory(key).forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v;
+    dl.appendChild(opt);
+  });
+}
+
+fillDatalist('custcodeList', HIST_KEY_CUST);
+fillDatalist('branchList', HIST_KEY_BRANCH);
+
 function formatDateThai(dateStr){
   if(!dateStr) return '';
   const [y,m,d] = dateStr.split('-');
@@ -261,6 +303,11 @@ genBtn.addEventListener('click', () => {
     `สถานะการโทรหาสาขา : ${callstatus}`,
     `หมายเหตุ : ${note}`
   ];
+
+  saveHistoryItem(HIST_KEY_CUST, custcode);
+  saveHistoryItem(HIST_KEY_BRANCH, branch);
+  fillDatalist('custcodeList', HIST_KEY_CUST);
+  fillDatalist('branchList', HIST_KEY_BRANCH);
 
   outBox.textContent = lines.join('\n');
   outCard.classList.remove('hidden');
