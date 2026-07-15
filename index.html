@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>สร้างข้อความนัดหมายเข้าซ่อม</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
@@ -237,45 +241,59 @@ const copyBtn = document.getElementById('copyBtn');
 const outBox = document.getElementById('outBox');
 const toast = document.getElementById('toast');
 
-const HIST_KEY_CUST = 'nat_appt_custcodes';
-const HIST_KEY_BRANCH = 'nat_appt_branches';
-let historyOK = true;
+const MAP_KEY = 'nat_appt_map'; // { custcode: branchName }
 
-function loadHistory(key){
+function loadMap(){
   try{
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : [];
+    const raw = localStorage.getItem(MAP_KEY);
+    return raw ? JSON.parse(raw) : {};
   } catch(e){
-    historyOK = false;
-    return [];
+    return {};
   }
 }
 
-function saveHistoryItem(key, value){
-  if(!value) return;
+function saveMapEntry(custcode, branch){
+  if(!custcode) return;
   try{
-    let list = loadHistory(key);
-    list = list.filter(v => v !== value);
-    list.unshift(value);
-    list = list.slice(0, 30);
-    localStorage.setItem(key, JSON.stringify(list));
-  } catch(e){
-    historyOK = false;
-  }
+    const map = loadMap();
+    map[custcode] = branch;
+    localStorage.setItem(MAP_KEY, JSON.stringify(map));
+  } catch(e){ /* storage unavailable, ignore */ }
 }
 
-function fillDatalist(listId, key){
-  const dl = document.getElementById(listId);
-  dl.innerHTML = '';
-  loadHistory(key).forEach(v => {
+function fillDatalists(){
+  const map = loadMap();
+  const custDl = document.getElementById('custcodeList');
+  const branchDl = document.getElementById('branchList');
+  custDl.innerHTML = '';
+  branchDl.innerHTML = '';
+  const seenBranches = new Set();
+  Object.keys(map).forEach(code => {
     const opt = document.createElement('option');
-    opt.value = v;
-    dl.appendChild(opt);
+    opt.value = code;
+    custDl.appendChild(opt);
+    const b = map[code];
+    if(b && !seenBranches.has(b)){
+      seenBranches.add(b);
+      const bopt = document.createElement('option');
+      bopt.value = b;
+      branchDl.appendChild(bopt);
+    }
   });
 }
 
-fillDatalist('custcodeList', HIST_KEY_CUST);
-fillDatalist('branchList', HIST_KEY_BRANCH);
+fillDatalists();
+
+const custcodeInput = document.getElementById('f_custcode');
+const branchInput = document.getElementById('f_branch');
+
+custcodeInput.addEventListener('input', () => {
+  const map = loadMap();
+  const match = map[custcodeInput.value.trim()];
+  if(match){
+    branchInput.value = match;
+  }
+});
 
 function formatDateThai(dateStr){
   if(!dateStr) return '';
@@ -333,10 +351,8 @@ genBtn.addEventListener('click', () => {
     `หมายเหตุ : ${note}`
   ];
 
-  saveHistoryItem(HIST_KEY_CUST, custcode);
-  saveHistoryItem(HIST_KEY_BRANCH, branch);
-  fillDatalist('custcodeList', HIST_KEY_CUST);
-  fillDatalist('branchList', HIST_KEY_BRANCH);
+  saveMapEntry(custcode, branch);
+  fillDatalists();
 
   outBox.textContent = lines.join('\n');
   outCard.classList.remove('hidden');
