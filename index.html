@@ -21,9 +21,26 @@
     --green: #62CE98;
     --text: #e6edf3;
     --sub: #8b98a5;
+    --outbg: #0a0e14;
+    --outtext: #c9d3dd;
     --mono: 'JetBrains Mono', monospace;
     --sans: 'IBM Plex Sans Thai', sans-serif;
   }
+  body[data-theme="light"]{
+    --bg: #f4f7f5;
+    --panel: #ffffff;
+    --panel-2: #eef2ef;
+    --line: #dbe4de;
+    --amber: #00A950;
+    --amber-dim: #bfe6cf;
+    --green: #0c8a44;
+    --text: #142019;
+    --sub: #66746c;
+    --outbg: #eef4f0;
+    --outtext: #17241c;
+  }
+  body[data-theme="light"] .btn-primary{color:#ffffff;}
+  body[data-theme="light"] .drop:hover, body[data-theme="light"] .drop.drag{background: rgba(0,169,80,0.06);}
   *{box-sizing:border-box;}
   body{
     margin:0;
@@ -156,7 +173,7 @@
   .combo input{flex:1;}
 
   .out-box{
-    background:#0a0e14;
+    background:var(--outbg);
     border:1px solid var(--line);
     border-radius:10px;
     padding:16px;
@@ -165,7 +182,7 @@
     line-height:1.85;
     white-space:pre-wrap;
     word-break:break-word;
-    color:#c9d3dd;
+    color:var(--outtext);
   }
 
   .copybar{display:flex;gap:10px;margin-top:12px;}
@@ -187,10 +204,15 @@
 
   <div class="ticket-head">
     <div class="glyph">＃</div>
-    <div>
+    <div style="flex:1;">
       <h1>ข้อความนัดหมายเข้าซ่อม</h1>
       <p>กรอกข้อมูล → คัดลอกส่งได้เลย</p>
     </div>
+    <button id="themeToggle" title="สลับโหมดมืด/สว่าง" style="
+      width:38px;height:38px;border-radius:8px;
+      background:var(--panel-2);border:1px solid var(--line);
+      color:var(--text);font-size:17px;cursor:pointer;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;">🌙</button>
   </div>
 
   <!-- FORM -->
@@ -279,6 +301,32 @@
 <div class="toast" id="toast">คัดลอกแล้ว</div>
 
 <script>
+const themeToggle = document.getElementById('themeToggle');
+const THEME_KEY = 'nat_appt_theme';
+
+function applyTheme(theme){
+  document.body.setAttribute('data-theme', theme);
+  themeToggle.textContent = theme === 'light' ? '☀️' : '🌙';
+}
+
+function loadTheme(){
+  try{ return localStorage.getItem(THEME_KEY) || 'dark'; }
+  catch(e){ return 'dark'; }
+}
+
+function saveTheme(theme){
+  try{ localStorage.setItem(THEME_KEY, theme); } catch(e){ /* ignore */ }
+}
+
+applyTheme(loadTheme());
+
+themeToggle.addEventListener('click', () => {
+  const current = document.body.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  const next = current === 'light' ? 'dark' : 'light';
+  applyTheme(next);
+  saveTheme(next);
+});
+
 const formCard = document.getElementById('formCard');
 const outCard = document.getElementById('outCard');
 const genBtn = document.getElementById('genBtn');
