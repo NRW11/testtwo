@@ -142,6 +142,16 @@
   .suggest-list .item:last-child{border-bottom:none;}
   .suggest-list .item:active, .suggest-list .item:hover{background:rgba(255,180,84,0.08);}
   .suggest-list .item .code{color:var(--amber-dim);font-family:var(--mono);font-size:11.5px;flex-shrink:0;}
+  .suggest-list .item .del{
+    color:var(--sub);
+    font-size:15px;
+    line-height:1;
+    padding:0 2px;
+    flex-shrink:0;
+    cursor:pointer;
+  }
+  .suggest-list .item .del:hover, .suggest-list .item .del:active{color:#ff6b6b;}
+  .suggest-list .item .txt{flex:1;min-width:0;display:flex;gap:8px;overflow:hidden;}
   .suggest-list .empty{padding:10px 11px;font-size:12.5px;color:var(--sub);}
   .combo input{flex:1;}
 
@@ -293,6 +303,14 @@ function saveMapEntry(custcode, branch){
   } catch(e){ /* storage unavailable, ignore */ }
 }
 
+function deleteMapEntry(custcode){
+  try{
+    const map = loadMap();
+    delete map[custcode];
+    localStorage.setItem(MAP_KEY, JSON.stringify(map));
+  } catch(e){ /* storage unavailable, ignore */ }
+}
+
 function fillDatalists(){ /* kept as no-op alias for compatibility */ }
 
 const custcodeInput = document.getElementById('f_custcode');
@@ -311,18 +329,36 @@ function renderSuggestList(container, entries, onPick){
     entries.forEach(([code, branch]) => {
       const item = document.createElement('div');
       item.className = 'item';
+
+      const txt = document.createElement('div');
+      txt.className = 'txt';
       const nameSpan = document.createElement('span');
       nameSpan.textContent = branch || '(ไม่มีชื่อสาขา)';
       const codeSpan = document.createElement('span');
       codeSpan.className = 'code';
       codeSpan.textContent = code;
-      item.appendChild(nameSpan);
-      item.appendChild(codeSpan);
-      item.addEventListener('mousedown', (e) => {
+      txt.appendChild(nameSpan);
+      txt.appendChild(codeSpan);
+      txt.addEventListener('mousedown', (e) => {
         e.preventDefault();
         onPick(code, branch);
         container.classList.add('hidden');
       });
+
+      const del = document.createElement('span');
+      del.className = 'del';
+      del.textContent = '✕';
+      del.title = 'ลบรายการนี้';
+      del.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        deleteMapEntry(code);
+        const updated = Object.entries(loadMap());
+        renderSuggestList(container, updated, onPick);
+      });
+
+      item.appendChild(txt);
+      item.appendChild(del);
       container.appendChild(item);
     });
   }
