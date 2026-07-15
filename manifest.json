@@ -1,7 +1,7 @@
 {
   "name": "ข้อความนัดหมายเข้าซ่อม",
   "short_name": "นัดซ่อม",
-  "start_url": "./nat-appointment-form.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0d1117",
   "theme_color": "#00A950",
